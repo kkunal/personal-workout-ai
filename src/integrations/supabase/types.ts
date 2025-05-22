@@ -9,7 +9,229 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      exercises: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration: string | null
+          equipment: string | null
+          id: string
+          name: string
+          reps: number | null
+          rest_time: string | null
+          sets: number | null
+          updated_at: string
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          equipment?: string | null
+          id?: string
+          name: string
+          reps?: number | null
+          rest_time?: string | null
+          sets?: number | null
+          updated_at?: string
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          equipment?: string | null
+          id?: string
+          name?: string
+          reps?: number | null
+          rest_time?: string | null
+          sets?: number | null
+          updated_at?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_type: string
+          status: string
+          trial_end: string | null
+          trial_start: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_type: string
+          status: string
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_type?: string
+          status?: string
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_from_user: boolean
+          message: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_from_user: boolean
+          message: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_from_user?: boolean
+          message?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          available_equipment: string[] | null
+          created_at: string
+          first_name: string | null
+          fitness_goals: string[] | null
+          fitness_level: string | null
+          id: string
+          last_name: string | null
+          preferred_exercises: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          available_equipment?: string[] | null
+          created_at?: string
+          first_name?: string | null
+          fitness_goals?: string[] | null
+          fitness_level?: string | null
+          id: string
+          last_name?: string | null
+          preferred_exercises?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          available_equipment?: string[] | null
+          created_at?: string
+          first_name?: string | null
+          fitness_goals?: string[] | null
+          fitness_level?: string | null
+          id?: string
+          last_name?: string | null
+          preferred_exercises?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      workout_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          name: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          start_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workouts: {
+        Row: {
+          created_at: string
+          day_of_week: string
+          description: string | null
+          id: string
+          name: string
+          plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: string
+          description?: string | null
+          id?: string
+          name: string
+          plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: string
+          description?: string | null
+          id?: string
+          name?: string
+          plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workouts_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "workout_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
