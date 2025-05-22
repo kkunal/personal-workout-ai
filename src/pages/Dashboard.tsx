@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, Dumbbell, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
+import { WorkoutPlansList } from "@/components/workouts/WorkoutPlansList";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
@@ -42,7 +42,7 @@ const Dashboard = () => {
           </div>
           <div className="mt-4 md:mt-0">
             <Button asChild>
-              <Link to="/plans">View My Plans</Link>
+              <Link to="/plans">View All Plans</Link>
             </Button>
           </div>
         </div>
@@ -60,7 +60,7 @@ const Dashboard = () => {
                   <span className="font-medium">No active plan</span>
                 </div>
                 <Button variant="outline" size="sm">
-                  <Link to="/onboarding">Create Plan</Link>
+                  <Link to="/plans">View Plans</Link>
                 </Button>
               </div>
             </CardContent>
@@ -101,6 +101,10 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="mb-12">
+          <WorkoutPlansList />
         </div>
 
         <div className="mb-8">
