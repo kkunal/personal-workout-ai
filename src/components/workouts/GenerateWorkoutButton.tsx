@@ -23,8 +23,10 @@ export function GenerateWorkoutButton({ onSuccess }: GenerateWorkoutButtonProps)
         throw new Error("You must be logged in to generate a workout plan");
       }
 
-      const { data, error } = await supabase.rpc('generate_workout_plan', {
-        user_id: user.id
+      // Using callFunction instead of rpc to avoid type issues
+      // or use a type assertion if we know the function exists
+      const { data, error } = await supabase.functions.invoke('generate-workout-plan', {
+        body: { userId: user.id }
       });
       
       if (error) {
