@@ -142,16 +142,6 @@ export function HealthBenefitsDialog({ open, setOpen }: { open: boolean; setOpen
               </div>
             </div>
           </div>
-          
-          <div className="flex justify-end pt-2">
-            <Button 
-              variant="outline" 
-              onClick={handleClose}
-              type="button"
-            >
-              Close
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
