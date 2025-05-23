@@ -2,19 +2,39 @@
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { CheckCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const SubscriptionSuccess = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const navigate = useNavigate();
+  const { refresh, isSubscribed } = useSubscription();
+  const [isUpdating, setIsUpdating] = useState(true);
 
   useEffect(() => {
     if (!sessionId) {
       navigate("/");
+      return;
     }
-  }, [sessionId, navigate]);
+    
+    // Immediately refresh subscription status after successful payment
+    const updateSubscriptionStatus = async () => {
+      try {
+        setIsUpdating(true);
+        console.log("Updating subscription status after successful payment...");
+        await refresh();
+        console.log("Subscription status updated:", { isSubscribed });
+      } catch (error) {
+        console.error("Error updating subscription status:", error);
+      } finally {
+        setIsUpdating(false);
+      }
+    };
+    
+    updateSubscriptionStatus();
+  }, [sessionId, navigate, refresh, isSubscribed]);
 
   return (
     <Container className="py-20">
@@ -29,18 +49,25 @@ const SubscriptionSuccess = () => {
           Thank you for subscribing to our service. You now have access to all premium features.
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/dashboard">
-            <Button size="lg" className="min-w-[150px]">
-              Go to Dashboard
-            </Button>
-          </Link>
-          <Link to="/plans">
-            <Button size="lg" variant="outline" className="min-w-[150px]">
-              View Workout Plans
-            </Button>
-          </Link>
-        </div>
+        {isUpdating ? (
+          <div className="flex items-center justify-center mb-6">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            <span>Updating your subscription status...</span>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/subscription">
+              <Button size="lg" className="min-w-[150px]">
+                View Subscription
+              </Button>
+            </Link>
+            <Link to="/dashboard">
+              <Button size="lg" variant="outline" className="min-w-[150px]">
+                Go to Dashboard
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </Container>
   );

@@ -44,17 +44,16 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Fix: Query with user_id and limit to 1 row
+    // Fetch existing subscription status
     const { data: subscriptionData, error: queryError } = await supabaseClient
       .from("user_subscription_status")
       .select("*")
       .eq("user_id", user.id)
       .limit(1)
-      .maybeSingle();  // Use maybeSingle() instead of single() to avoid errors when no data is found
+      .maybeSingle();
       
     if (queryError) {
       logStep("Error fetching subscription data", { error: queryError.message });
-      // Don't throw error here, we'll create a new record if needed
     }
 
     // If no record exists, create default entry
@@ -63,7 +62,7 @@ serve(async (req) => {
       const defaultTrialEnd = new Date();
       defaultTrialEnd.setDate(defaultTrialEnd.getDate() + 14); // 14 days from now
       
-      const { error: insertError } = await supabaseClient
+      const { data: newRecord, error: insertError } = await supabaseClient
         .from("user_subscription_status")
         .insert({
           user_id: user.id,
@@ -71,13 +70,15 @@ serve(async (req) => {
           trial_end_date: defaultTrialEnd.toISOString(),
           is_trial_expired: false,
           has_subscription: false
-        });
+        })
+        .select()
+        .single();
         
       if (insertError) {
         logStep("Error creating subscription record", { error: insertError.message });
         throw new Error(`Failed to create subscription record: ${insertError.message}`);
       }
-      logStep("Created new subscription status record");
+      logStep("Created new subscription status record", { recordId: newRecord.id });
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -86,29 +87,26 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No Stripe customer found, returning status based on db data");
       
-      // Get the latest subscription status
-      const { data: latestData, error: latestError } = await supabaseClient
+      // Update is_trial_expired via a timestamp update (to trigger the DB trigger)
+      const { data: updatedData, error: updateError } = await supabaseClient
         .from("user_subscription_status")
-        .select("*")
+        .update({ 
+          updated_at: new Date().toISOString(),
+          has_subscription: false,
+          subscription_type: null 
+        })
         .eq("user_id", user.id)
-        .limit(1)
-        .maybeSingle();
+        .select()
+        .single();
         
-      if (latestError) {
-        throw new Error(`Error fetching updated status: ${latestError.message}`);
+      if (updateError) {
+        throw new Error(`Error updating status: ${updateError.message}`);
       }
       
-      // Update is_trial_expired via a timestamp update (to trigger the DB trigger)
-      await supabaseClient
-        .from("user_subscription_status")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("user_id", user.id)
-        .eq("id", latestData?.id || '');
-        
       return new Response(JSON.stringify({ 
         has_subscription: false,
-        is_trial_expired: latestData?.is_trial_expired || false,
-        trial_end_date: latestData?.trial_end_date,
+        is_trial_expired: updatedData.is_trial_expired || false,
+        trial_end_date: updatedData.trial_end_date,
         subscription_type: null
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -143,57 +141,61 @@ serve(async (req) => {
       }
 
       // Update the subscription status in database
-      await supabaseClient
+      const { data: updatedData, error: updateError } = await supabaseClient
         .from("user_subscription_status")
         .update({
           has_subscription: true,
           subscription_type: subscriptionType,
           updated_at: new Date().toISOString()
         })
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .select()
+        .single();
+        
+      if (updateError) {
+        throw new Error(`Failed to update subscription status: ${updateError.message}`);
+      }
+      
+      logStep("Updated subscription status", { recordId: updatedData.id });
+      
+      return new Response(JSON.stringify({
+        has_subscription: true,
+        is_trial_expired: updatedData.is_trial_expired,
+        trial_end_date: updatedData.trial_end_date,
+        subscription_type: subscriptionType
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     } else {
       // No active subscription, just update the timestamp to trigger trial expiry check
-      await supabaseClient
+      const { data: updatedData, error: updateError } = await supabaseClient
         .from("user_subscription_status")
         .update({ 
           has_subscription: false,
           subscription_type: null,
           updated_at: new Date().toISOString() 
         })
-        .eq("user_id", user.id);
-    }
-
-    // Get the updated status
-    const { data: updatedStatus, error: fetchError } = await supabaseClient
-      .from("user_subscription_status")
-      .select("*")
-      .eq("user_id", user.id)
-      .limit(1)
-      .maybeSingle();
+        .eq("user_id", user.id)
+        .select()
+        .single();
+        
+      if (updateError) {
+        throw new Error(`Failed to update status: ${updateError.message}`);
+      }
       
-    if (fetchError) {
-      throw new Error(`Failed to fetch updated status: ${fetchError.message}`);
+      logStep("Updated no-subscription status", { recordId: updatedData.id });
+      
+      return new Response(JSON.stringify({
+        has_subscription: false,
+        is_trial_expired: updatedData.is_trial_expired,
+        trial_end_date: updatedData.trial_end_date,
+        subscription_type: null
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
-    
-    if (!updatedStatus) {
-      throw new Error("No subscription status record found after update");
-    }
-    
-    logStep("Returning subscription status", { 
-      has_subscription: updatedStatus.has_subscription,
-      is_trial_expired: updatedStatus.is_trial_expired,
-      subscription_type: updatedStatus.subscription_type
-    });
-
-    return new Response(JSON.stringify({
-      has_subscription: updatedStatus.has_subscription,
-      is_trial_expired: updatedStatus.is_trial_expired,
-      trial_end_date: updatedStatus.trial_end_date,
-      subscription_type: updatedStatus.subscription_type
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in check-subscription", { message: errorMessage });
