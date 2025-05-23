@@ -10,6 +10,10 @@ export function Hero() {
   const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const handleLearnMoreClick = () => {
+    setDialogOpen(true);
+  };
+
   return (
     <div className="bg-gradient-to-b from-blue-50 to-white py-16 md:py-24">
       <Container>
@@ -39,7 +43,7 @@ export function Hero() {
                 size="lg" 
                 variant="outline" 
                 className="text-lg px-8"
-                onClick={() => setDialogOpen(true)}
+                onClick={handleLearnMoreClick}
               >
                 Learn More
               </Button>

@@ -13,6 +13,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Images, Info, Dumbbell, Heart, Brain } from "lucide-react";
 
 export function HealthBenefitsDialog({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
+  const handleClose = () => {
+    setOpen(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-xl">
@@ -140,7 +144,11 @@ export function HealthBenefitsDialog({ open, setOpen }: { open: boolean; setOpen
           </div>
           
           <div className="flex justify-end pt-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button 
+              variant="outline" 
+              onClick={handleClose}
+              type="button"
+            >
               Close
             </Button>
           </div>
