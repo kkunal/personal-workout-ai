@@ -34,15 +34,18 @@ export function useSubscription(): SubscriptionStatus {
     try {
       setIsLoading(true);
       
-      // First try to get from the database
+      // Fix: Use .eq("user_id", user.id).limit(1) to ensure we only get one row
+      // and use .single() to get a single record
       const { data: dbData, error: dbError } = await supabase
         .from("user_subscription_status")
         .select("*")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .limit(1)
+        .single();
 
       if (dbError) {
-        throw dbError;
+        console.error("Error fetching subscription status from DB:", dbError);
+        // Continue to check with Stripe as fallback
       }
 
       // Then try to verify with Stripe via our edge function

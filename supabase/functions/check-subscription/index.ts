@@ -44,15 +44,22 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user already has a subscription status record
-    const { data: subscriptionData } = await supabaseClient
+    // Fix: Query with user_id and limit to 1 row
+    const { data: subscriptionData, error: queryError } = await supabaseClient
       .from("user_subscription_status")
       .select("*")
       .eq("user_id", user.id)
-      .maybeSingle();
+      .limit(1)
+      .maybeSingle();  // Use maybeSingle() instead of single() to avoid errors when no data is found
+      
+    if (queryError) {
+      logStep("Error fetching subscription data", { error: queryError.message });
+      // Don't throw error here, we'll create a new record if needed
+    }
 
     // If no record exists, create default entry
     if (!subscriptionData) {
+      logStep("No subscription record found, creating default");
       const defaultTrialEnd = new Date();
       defaultTrialEnd.setDate(defaultTrialEnd.getDate() + 14); // 14 days from now
       
@@ -66,7 +73,10 @@ serve(async (req) => {
           has_subscription: false
         });
         
-      if (insertError) throw new Error(`Failed to create subscription record: ${insertError.message}`);
+      if (insertError) {
+        logStep("Error creating subscription record", { error: insertError.message });
+        throw new Error(`Failed to create subscription record: ${insertError.message}`);
+      }
       logStep("Created new subscription status record");
     }
 
@@ -74,18 +84,31 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No Stripe customer found, updating status");
+      logStep("No Stripe customer found, returning status based on db data");
       
-      // Update status (calculated field) via a trigger
+      // Get the latest subscription status
+      const { data: latestData, error: latestError } = await supabaseClient
+        .from("user_subscription_status")
+        .select("*")
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+        
+      if (latestError) {
+        throw new Error(`Error fetching updated status: ${latestError.message}`);
+      }
+      
+      // Update is_trial_expired via a timestamp update (to trigger the DB trigger)
       await supabaseClient
         .from("user_subscription_status")
         .update({ updated_at: new Date().toISOString() })
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .eq("id", latestData?.id || '');
         
       return new Response(JSON.stringify({ 
         has_subscription: false,
-        is_trial_expired: subscriptionData?.is_trial_expired || false,
-        trial_end_date: subscriptionData?.trial_end_date,
+        is_trial_expired: latestData?.is_trial_expired || false,
+        trial_end_date: latestData?.trial_end_date,
         subscription_type: null
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -112,13 +135,12 @@ serve(async (req) => {
       
       // Determine subscription tier based on price
       if (subscription.items.data.length > 0) {
-        const price = subscription.items.data[0].price;
-        subscriptionType = price.product.toString().includes("Monthly") ? "Monthly" : "Annual";
+        const priceId = subscription.items.data[0].price.id;
+        subscriptionType = priceId.includes("monthly") ? "Monthly" : "Annual";
+        logStep("Determined subscription type", { subscriptionType });
       } else {
         subscriptionType = "Premium";
       }
-      
-      logStep("Determined subscription type", { subscriptionType });
 
       // Update the subscription status in database
       await supabaseClient
@@ -146,9 +168,16 @@ serve(async (req) => {
       .from("user_subscription_status")
       .select("*")
       .eq("user_id", user.id)
-      .single();
+      .limit(1)
+      .maybeSingle();
       
-    if (fetchError) throw new Error(`Failed to fetch updated status: ${fetchError.message}`);
+    if (fetchError) {
+      throw new Error(`Failed to fetch updated status: ${fetchError.message}`);
+    }
+    
+    if (!updatedStatus) {
+      throw new Error("No subscription status record found after update");
+    }
     
     logStep("Returning subscription status", { 
       has_subscription: updatedStatus.has_subscription,
