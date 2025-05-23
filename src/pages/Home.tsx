@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Hero } from "@/components/home/Hero";
 import { Features } from "@/components/home/Features";
 import { Pricing } from "@/components/home/Pricing";
+import { Testimonials } from "@/components/home/Testimonials";
 import { OnboardingCTA } from "@/components/home/OnboardingCTA";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,7 @@ const Home = () => {
     <>
       <Hero />
       <Features />
+      <Testimonials />
       {user && !isLoading && (
         <OnboardingCTA completed={hasCompletedOnboarding} />
       )}
