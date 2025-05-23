@@ -25,9 +25,9 @@ export function WorkoutPlansList() {
 
       setPlans(data || []);
     } catch (error: any) {
-      console.error("Error fetching workout plans:", error);
+      console.error("Error fetching workouts:", error);
       toast({
-        title: "Failed to load workout plans",
+        title: "Failed to load workouts",
         description: error.message,
         variant: "destructive"
       });
@@ -47,7 +47,7 @@ export function WorkoutPlansList() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Your Workout Plans</h2>
+        <h2 className="text-xl font-semibold">Your Workouts</h2>
       </div>
 
       {isLoading ? (
@@ -66,9 +66,9 @@ export function WorkoutPlansList() {
         </div>
       ) : (
         <div className="text-center py-10 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-          <h3 className="text-lg font-medium text-gray-900">No workout plans yet</h3>
+          <h3 className="text-lg font-medium text-gray-900">No workouts yet</h3>
           <p className="text-gray-600 mt-1 mb-4">
-            Generate your first personalized workout plan based on your profile
+            Generate your first personalized workout based on your profile
           </p>
         </div>
       )}

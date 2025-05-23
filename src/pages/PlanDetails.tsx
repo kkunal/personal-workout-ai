@@ -44,8 +44,8 @@ const PlanDetails = () => {
         if (planError) throw planError;
         if (!planData) {
           toast({
-            title: "Plan not found",
-            description: "The workout plan you're looking for doesn't exist",
+            title: "Workout not found",
+            description: "The workout you're looking for doesn't exist",
             variant: "destructive",
           });
           navigate("/plans");
@@ -68,9 +68,9 @@ const PlanDetails = () => {
         setWorkouts(workoutsData || []);
 
       } catch (error: any) {
-        console.error("Error fetching plan details:", error);
+        console.error("Error fetching workout details:", error);
         toast({
-          title: "Failed to load plan details",
+          title: "Failed to load workout details",
           description: error.message,
           variant: "destructive",
         });
@@ -106,7 +106,7 @@ const PlanDetails = () => {
             onClick={handleGoBack}
           >
             <ChevronLeft className="h-4 w-4" />
-            Back to Plans
+            Back to Workouts
           </Button>
         </div>
 
@@ -146,7 +146,7 @@ const PlanDetails = () => {
               ) : (
                 <Card className="text-center py-10">
                   <CardContent>
-                    <p className="text-gray-500">No workouts found in this plan.</p>
+                    <p className="text-gray-500">No workouts found.</p>
                   </CardContent>
                 </Card>
               )}
@@ -156,6 +156,6 @@ const PlanDetails = () => {
       </Container>
     </div>
   );
-};
+}
 
 export default PlanDetails;

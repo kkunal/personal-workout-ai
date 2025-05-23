@@ -64,7 +64,7 @@ const WorkoutPlans = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">My Workouts</h1>
             <p className="text-gray-600 mt-2">
-              View and manage your personalized workout plans
+              View and manage your personalized workouts
             </p>
           </div>
           {!hasPlans && (
