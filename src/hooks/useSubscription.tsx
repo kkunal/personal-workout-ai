@@ -53,7 +53,7 @@ export function useSubscription(): SubscriptionStatus {
           .select("*")
           .eq("user_id", user.id)
           .limit(1)
-          .single();
+          .maybeSingle();
           
         if (dbError) {
           console.error("Error fetching updated subscription status from DB:", dbError);
@@ -87,11 +87,17 @@ export function useSubscription(): SubscriptionStatus {
         .select("*")
         .eq("user_id", user.id)
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (dbError) {
         console.error("Error fetching subscription status from DB:", dbError);
         throw dbError;
+      }
+
+      if (!dbData) {
+        console.log("No subscription data found. User may need to refresh or revisit after logging in.");
+        setIsLoading(false);
+        return;
       }
 
       const endDate = dbData.trial_end_date ? new Date(dbData.trial_end_date) : null;
@@ -117,7 +123,7 @@ export function useSubscription(): SubscriptionStatus {
       console.error("Error fetching subscription status:", error);
       toast({
         title: "Error",
-        description: "Failed to load subscription status",
+        description: "Failed to load subscription status. Please refresh the page.",
         variant: "destructive",
       });
     } finally {
@@ -126,6 +132,7 @@ export function useSubscription(): SubscriptionStatus {
   }, [user]);
 
   const refresh = useCallback(async () => {
+    console.log("Manual refresh of subscription status requested");
     await fetchSubscriptionStatus();
     setLastRefresh(Date.now());
   }, [fetchSubscriptionStatus]);
@@ -141,15 +148,17 @@ export function useSubscription(): SubscriptionStatus {
     
     // Re-check status when on subscription page or coming from success page
     if (currentPath === '/subscription' || currentPath === '/success') {
+      console.log("On subscription page or coming from success page, refreshing status...");
       fetchSubscriptionStatus();
     }
     
-    // Also set up periodic refresh every 30 seconds when on subscription-related pages
+    // Also set up periodic refresh every 15 seconds when on subscription-related pages
     let intervalId: number | undefined;
     if (currentPath === '/subscription' || currentPath === '/success') {
       intervalId = window.setInterval(() => {
+        console.log("Periodic refresh of subscription status");
         fetchSubscriptionStatus();
-      }, 30000);
+      }, 15000);
     }
     
     return () => {

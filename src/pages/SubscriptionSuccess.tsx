@@ -5,6 +5,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "@/hooks/use-toast";
 
 const SubscriptionSuccess = () => {
   const [searchParams] = useSearchParams();
@@ -12,6 +13,7 @@ const SubscriptionSuccess = () => {
   const navigate = useNavigate();
   const { refresh, isSubscribed } = useSubscription();
   const [isUpdating, setIsUpdating] = useState(true);
+  const [refreshAttempts, setRefreshAttempts] = useState(0);
 
   useEffect(() => {
     if (!sessionId) {
@@ -24,17 +26,51 @@ const SubscriptionSuccess = () => {
       try {
         setIsUpdating(true);
         console.log("Updating subscription status after successful payment...");
+        
+        // Multiple refresh attempts to ensure status is updated
         await refresh();
-        console.log("Subscription status updated:", { isSubscribed });
+        
+        // Set a short timeout before checking status again
+        setTimeout(async () => {
+          console.log("Second attempt at refreshing subscription status...");
+          await refresh();
+          
+          if (!isSubscribed && refreshAttempts < 3) {
+            console.log(`Subscription status not updated yet. Attempt ${refreshAttempts + 1} of 3`);
+            setRefreshAttempts(prev => prev + 1);
+          } else {
+            console.log("Subscription status updated:", { isSubscribed });
+            setIsUpdating(false);
+            
+            if (isSubscribed) {
+              toast({
+                title: "Subscription activated",
+                description: "Thank you for subscribing! You now have access to all premium features.",
+                variant: "default",
+              });
+            }
+          }
+        }, 2000);
       } catch (error) {
         console.error("Error updating subscription status:", error);
-      } finally {
         setIsUpdating(false);
       }
     };
     
     updateSubscriptionStatus();
-  }, [sessionId, navigate, refresh, isSubscribed]);
+  }, [sessionId, navigate, refresh, isSubscribed, refreshAttempts]);
+
+  // Make additional attempts if needed
+  useEffect(() => {
+    if (refreshAttempts > 0 && refreshAttempts < 3 && !isSubscribed) {
+      const timer = setTimeout(() => {
+        console.log(`Making additional attempt (${refreshAttempts + 1} of 3) to refresh subscription status...`);
+        refresh();
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [refreshAttempts, isSubscribed, refresh]);
 
   return (
     <Container className="py-20">

@@ -26,10 +26,10 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    // Initialize Supabase client with anon key
+    // Initialize Supabase client with SERVICE ROLE key to bypass RLS
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
@@ -56,7 +56,7 @@ serve(async (req) => {
       logStep("Error fetching subscription data", { error: queryError.message });
     }
 
-    // If no record exists, create default entry
+    // If no record exists, create default entry using service role to bypass RLS
     if (!subscriptionData) {
       logStep("No subscription record found, creating default");
       const defaultTrialEnd = new Date();
@@ -100,6 +100,7 @@ serve(async (req) => {
         .single();
         
       if (updateError) {
+        logStep("Error updating status", { error: updateError.message });
         throw new Error(`Error updating status: ${updateError.message}`);
       }
       
@@ -121,7 +122,7 @@ serve(async (req) => {
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
-      limit: 1,
+      limit: 100, // Increase limit to ensure we get all subscriptions
     });
     
     const hasActiveSub = subscriptions.data.length > 0;
@@ -129,16 +130,25 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      logStep("Active subscription found", { subscriptionId: subscription.id });
+      logStep("Active subscription found", { 
+        subscriptionId: subscription.id,
+        status: subscription.status,
+        items: subscription.items.data.length
+      });
       
       // Determine subscription tier based on price
       if (subscription.items.data.length > 0) {
         const priceId = subscription.items.data[0].price.id;
         subscriptionType = priceId.includes("monthly") ? "Monthly" : "Annual";
-        logStep("Determined subscription type", { subscriptionType });
+        logStep("Determined subscription type", { subscriptionType, priceId });
       } else {
         subscriptionType = "Premium";
       }
+
+      // Log full subscription details for debugging
+      logStep("Full subscription details", { 
+        subscription: JSON.stringify(subscription)
+      });
 
       // Update the subscription status in database
       const { data: updatedData, error: updateError } = await supabaseClient
@@ -153,10 +163,15 @@ serve(async (req) => {
         .single();
         
       if (updateError) {
+        logStep("Failed to update subscription status", { error: updateError.message });
         throw new Error(`Failed to update subscription status: ${updateError.message}`);
       }
       
-      logStep("Updated subscription status", { recordId: updatedData.id });
+      logStep("Updated subscription status", { 
+        recordId: updatedData.id,
+        hasSubscription: true,
+        subscriptionType
+      });
       
       return new Response(JSON.stringify({
         has_subscription: true,
@@ -168,6 +183,8 @@ serve(async (req) => {
         status: 200,
       });
     } else {
+      logStep("No active subscription found");
+      
       // No active subscription, just update the timestamp to trigger trial expiry check
       const { data: updatedData, error: updateError } = await supabaseClient
         .from("user_subscription_status")
@@ -181,6 +198,7 @@ serve(async (req) => {
         .single();
         
       if (updateError) {
+        logStep("Failed to update status", { error: updateError.message });
         throw new Error(`Failed to update status: ${updateError.message}`);
       }
       
