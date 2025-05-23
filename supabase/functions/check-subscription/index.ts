@@ -131,13 +131,29 @@ serve(async (req) => {
         items: subscription.items.data.length
       });
       
-      // Determine subscription tier based on price
+      // Determine subscription tier based on recurring interval
       if (subscription.items.data.length > 0) {
-        const priceId = subscription.items.data[0].price.id;
-        subscriptionType = priceId.includes("monthly") ? "Monthly" : "Annual";
-        logStep("Determined subscription type", { subscriptionType, priceId });
+        const price = subscription.items.data[0].price;
+        const priceId = price.id;
+        
+        // Check if this subscription has a recurring component
+        if (price.recurring) {
+          // Determine the type based on the interval
+          subscriptionType = price.recurring.interval === "month" ? "Monthly" : "Annual";
+          logStep("Determined subscription type from recurring interval", { 
+            subscriptionType, 
+            interval: price.recurring.interval,
+            priceId 
+          });
+        } else {
+          // If it's a one-time payment (likely Annual)
+          subscriptionType = "Annual";
+          logStep("Determined one-time payment subscription", { subscriptionType, priceId });
+        }
       } else {
+        // Default fallback
         subscriptionType = "Premium";
+        logStep("Using default subscription type", { subscriptionType });
       }
 
       // Log full subscription details for debugging
@@ -172,7 +188,8 @@ serve(async (req) => {
       } else {
         logStep("Updated subscription status", { 
           hasSubscription: true,
-          subscriptionType
+          subscriptionType,
+          updatedRecord: updatedData
         });
       }
       

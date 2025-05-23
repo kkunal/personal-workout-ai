@@ -24,6 +24,7 @@ serve(async (req) => {
     });
 
     const { plan } = await req.json();
+    console.log("Creating checkout for plan:", plan);
     
     // Determine price based on selected plan
     const priceData = {
@@ -54,6 +55,7 @@ serve(async (req) => {
         const { data, error } = await supabase.auth.getUser(token);
         if (!error && data.user) {
           customerEmail = data.user.email;
+          console.log("Authenticated user email:", customerEmail);
         }
       } catch (error) {
         console.error("Error getting user:", error);
