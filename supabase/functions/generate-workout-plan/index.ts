@@ -25,15 +25,36 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
 
-    // Get the user profile to determine fitness level and goals
+    // Check if user profile exists, if not create a basic one
     const { data: profileData, error: profileError } = await supabaseClient
       .from('user_profiles')
       .select('*')
       .eq('id', userId)
-      .single()
+      .maybeSingle()
     
-    if (profileError) {
-      throw profileError
+    let userProfile = profileData
+    
+    // If profile doesn't exist, create a default one
+    if (!userProfile) {
+      const { data: newProfile, error: createProfileError } = await supabaseClient
+        .from('user_profiles')
+        .insert({
+          id: userId,
+          fitness_level: 'Beginner',
+          fitness_goals: ['General Fitness'],
+          available_equipment: ['bodyweight'],
+          preferred_exercises: ['Basic']
+        })
+        .select()
+        .single()
+      
+      if (createProfileError) {
+        throw new Error(`Error creating user profile: ${createProfileError.message}`)
+      }
+      
+      userProfile = newProfile
+    } else if (profileError) {
+      throw new Error(`Error fetching user profile: ${profileError.message}`)
     }
 
     // Generate a new workout plan
@@ -45,7 +66,7 @@ serve(async (req) => {
       .from('workout_plans')
       .insert({
         user_id: userId,
-        name: `${profileData?.fitness_level || 'Custom'} Workout Plan`,
+        name: `${userProfile?.fitness_level || 'Custom'} Workout Plan`,
         description: 'Generated based on your fitness profile',
         start_date: startDate.toISOString().split('T')[0],
         end_date: endDate.toISOString().split('T')[0],
@@ -55,7 +76,7 @@ serve(async (req) => {
       .single()
     
     if (planError) {
-      throw planError
+      throw new Error(`Error creating workout plan: ${planError.message}`)
     }
 
     // Create some sample workouts for the plan
