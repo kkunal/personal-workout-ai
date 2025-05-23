@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { WorkoutPlanCard } from "./WorkoutPlanCard";
-import { GenerateWorkoutButton } from "./GenerateWorkoutButton";
 import { useNavigate } from "react-router-dom";
 
 export function WorkoutPlansList() {
@@ -41,10 +40,6 @@ export function WorkoutPlansList() {
     fetchWorkoutPlans();
   }, []);
 
-  const handleGenerateSuccess = () => {
-    fetchWorkoutPlans(); // Refresh the list after generating a new plan
-  };
-
   const handleViewPlanDetails = (planId: string) => {
     navigate(`/plans/${planId}`);
   };
@@ -53,7 +48,6 @@ export function WorkoutPlansList() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Your Workout Plans</h2>
-        <GenerateWorkoutButton onSuccess={handleGenerateSuccess} />
       </div>
 
       {isLoading ? (
@@ -76,7 +70,6 @@ export function WorkoutPlansList() {
           <p className="text-gray-600 mt-1 mb-4">
             Generate your first personalized workout plan based on your profile
           </p>
-          <GenerateWorkoutButton onSuccess={handleGenerateSuccess} />
         </div>
       )}
     </div>
