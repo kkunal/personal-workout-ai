@@ -1,11 +1,14 @@
 
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { HealthBenefitsDialog } from "./HealthBenefitsDialog";
 import { useAuth } from "@/hooks/useAuth";
 
 export function Hero() {
   const { user } = useAuth();
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <div className="bg-gradient-to-b from-blue-50 to-white py-16 md:py-24">
@@ -32,11 +35,14 @@ export function Hero() {
                   </Button>
                 </Link>
               )}
-              <Link to="#features">
-                <Button size="lg" variant="outline" className="text-lg px-8">
-                  Learn More
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="text-lg px-8"
+                onClick={() => setDialogOpen(true)}
+              >
+                Learn More
+              </Button>
             </div>
           </div>
           <div className="md:w-1/2 flex justify-center">
@@ -55,6 +61,8 @@ export function Hero() {
           </div>
         </div>
       </Container>
+      
+      <HealthBenefitsDialog open={dialogOpen} setOpen={setDialogOpen} />
     </div>
   );
 }
