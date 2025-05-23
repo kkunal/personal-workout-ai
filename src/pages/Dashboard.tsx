@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Container } from "@/components/ui/container";
@@ -10,16 +10,41 @@ import { Link } from "react-router-dom";
 import { WorkoutPlansList } from "@/components/workouts/WorkoutPlansList";
 import { TrialAlert } from "@/components/subscription/TrialAlert";
 import { SubscriptionCard } from "@/components/subscription/SubscriptionCard";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const [hasWorkouts, setHasWorkouts] = useState<boolean>(false);
+  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState<boolean>(true);
 
   useEffect(() => {
     if (!isLoading && !user) {
       navigate("/auth");
     }
   }, [user, isLoading, navigate]);
+
+  // Check if user has any workout plans
+  useEffect(() => {
+    const checkForWorkouts = async () => {
+      if (!user) return;
+      
+      try {
+        const { count, error } = await supabase
+          .from("workout_plans")
+          .select("*", { count: 'exact', head: true });
+        
+        if (error) throw error;
+        setHasWorkouts(count !== null && count > 0);
+      } catch (error) {
+        console.error("Error checking for workouts:", error);
+      } finally {
+        setIsLoadingWorkouts(false);
+      }
+    };
+    
+    checkForWorkouts();
+  }, [user]);
 
   if (isLoading) {
     return (
@@ -43,11 +68,13 @@ const Dashboard = () => {
               Here's an overview of your fitness journey
             </p>
           </div>
-          <div className="mt-4 md:mt-0">
-            <Button asChild>
-              <Link to="/plans">View All Plans</Link>
-            </Button>
-          </div>
+          {!isLoadingWorkouts && !hasWorkouts && (
+            <div className="mt-4 md:mt-0">
+              <Button asChild>
+                <Link to="/plans">View All Plans</Link>
+              </Button>
+            </div>
+          )}
         </div>
 
         <TrialAlert />
