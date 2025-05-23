@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { Bot, X, Send, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Sample predefined answers for common questions
 const PREDEFINED_ANSWERS: Record<string, string> = {
@@ -31,7 +30,7 @@ export const ChatBot = () => {
     { text: WELCOME_MESSAGE, isUser: false }
   ]);
   const [inputValue, setInputValue] = useState("");
-  const { isMobile } = useMobile();
+  const { isMobile } = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
