@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Container } from "@/components/ui/container";
 import { Menu, X, User } from "lucide-react";
+import { SubscriptionBadge } from "@/components/subscription/SubscriptionBadge";
 
 export function Navbar() {
   const { user, signOut } = useAuth();
@@ -44,8 +45,11 @@ export function Navbar() {
                 </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="relative">
                       <User className="h-5 w-5" />
+                      <div className="absolute -bottom-2 -right-2">
+                        <SubscriptionBadge />
+                      </div>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -93,6 +97,10 @@ export function Navbar() {
               </Link>
               {user ? (
                 <>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-sm font-medium">Status:</span>
+                    <SubscriptionBadge />
+                  </div>
                   <Link
                     to="/dashboard"
                     className="text-gray-700 hover:text-blue-600"

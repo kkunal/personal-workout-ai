@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowRight, Dumbbell, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import { WorkoutPlansList } from "@/components/workouts/WorkoutPlansList";
+import { TrialAlert } from "@/components/subscription/TrialAlert";
+import { SubscriptionCard } from "@/components/subscription/SubscriptionCard";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
@@ -47,6 +50,8 @@ const Dashboard = () => {
           </div>
         </div>
 
+        <TrialAlert />
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <Card>
             <CardHeader className="pb-2">
@@ -84,23 +89,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium">Subscription</CardTitle>
-              <CardDescription>Your current plan</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="font-medium">Free Trial</span>
-                  <div className="text-sm text-gray-500">14 days remaining</div>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Link to="/subscription">Manage</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <SubscriptionCard />
         </div>
 
         <div className="mb-12">
