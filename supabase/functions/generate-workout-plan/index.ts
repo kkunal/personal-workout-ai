@@ -20,10 +20,10 @@ serve(async (req) => {
       throw new Error('User ID is required')
     }
 
-    // Create a Supabase client with the Auth context of the logged in user
+    // Create a Supabase client with the service role key to bypass RLS
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || ''
-    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    const supabaseClient = createClient(supabaseUrl, supabaseServiceRoleKey)
 
     // Check if user profile exists, if not create a basic one
     const { data: profileData, error: profileError } = await supabaseClient
