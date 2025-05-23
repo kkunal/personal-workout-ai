@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { AuthProvider } from "@/hooks/useAuth";
 import { Layout } from "@/components/layout/Layout";
-import { ChatBot } from "@/components/chat/ChatBot";
 
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -44,7 +43,6 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
-          <ChatBot />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
