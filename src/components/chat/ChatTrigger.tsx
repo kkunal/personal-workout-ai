@@ -11,10 +11,10 @@ export function ChatTrigger({ onClick }: ChatTriggerProps) {
   return (
     <Button
       onClick={onClick}
-      className="h-12 w-12 rounded-full shadow-lg"
+      className="h-12 px-4 rounded-full shadow-lg flex items-center gap-2"
     >
       <MessageCircle className="h-5 w-5" />
-      <span className="sr-only">Open chat</span>
+      <span>Chat with us</span>
     </Button>
   );
 }
