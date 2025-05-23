@@ -4,6 +4,8 @@ import { WorkoutPlansList } from "@/components/workouts/WorkoutPlansList";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
 
 const WorkoutPlans = () => {
   const { user, isLoading } = useAuth();
@@ -28,11 +30,13 @@ const WorkoutPlans = () => {
   return (
     <div className="py-12">
       <Container>
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Workout Plans</h1>
-          <p className="text-gray-600 mt-2">
-            View and manage your personalized workout plans
-          </p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Workout Plans</h1>
+            <p className="text-gray-600 mt-2">
+              View and manage your personalized workout plans
+            </p>
+          </div>
         </div>
 
         <WorkoutPlansList />

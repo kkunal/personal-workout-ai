@@ -29,7 +29,7 @@ export function GenerateWorkoutButton({ onSuccess }: GenerateWorkoutButtonProps)
       });
       
       if (onSuccess && data) {
-        onSuccess(data);
+        onSuccess(data as string);
       }
     } catch (error: any) {
       console.error("Error generating workout plan:", error);
