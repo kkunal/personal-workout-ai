@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dumbbell, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface WorkoutPlanCardProps {
   plan: {
@@ -15,27 +16,29 @@ interface WorkoutPlanCardProps {
     end_date: string;
     is_active: boolean;
   };
-  onViewDetails?: (planId: string) => void;
 }
 
-export function WorkoutPlanCard({ plan, onViewDetails }: WorkoutPlanCardProps) {
+export function WorkoutPlanCard({ plan }: WorkoutPlanCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const navigate = useNavigate();
 
   const formattedStartDate = format(parseISO(plan.start_date), 'MMM d, yyyy');
   const formattedEndDate = format(parseISO(plan.end_date), 'MMM d, yyyy');
 
-  const toggleExpanded = () => {
+  const toggleExpanded = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setExpanded(!expanded);
   };
 
   const handleViewDetails = () => {
-    if (onViewDetails) {
-      onViewDetails(plan.id);
-    }
+    navigate(`/plans/${plan.id}`);
   };
 
   return (
-    <Card className={`transition-all ${expanded ? 'shadow-lg' : 'shadow'}`}>
+    <Card 
+      className={`transition-all ${expanded ? 'shadow-lg' : 'shadow'} hover:shadow-md cursor-pointer`}
+      onClick={handleViewDetails}
+    >
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
@@ -71,7 +74,7 @@ export function WorkoutPlanCard({ plan, onViewDetails }: WorkoutPlanCardProps) {
       )}
       
       <CardFooter className="pt-2">
-        <Button onClick={handleViewDetails} variant="outline" className="w-full">
+        <Button variant="outline" className="w-full" onClick={handleViewDetails}>
           View Workout Details
         </Button>
       </CardFooter>
