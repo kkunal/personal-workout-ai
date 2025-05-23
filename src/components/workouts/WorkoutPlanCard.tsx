@@ -1,11 +1,9 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dumbbell, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { useNavigate } from "react-router-dom";
 
 interface WorkoutPlanCardProps {
   plan: {
@@ -16,11 +14,11 @@ interface WorkoutPlanCardProps {
     end_date: string;
     is_active: boolean;
   };
+  onViewDetails: (planId: string) => void;
 }
 
-export function WorkoutPlanCard({ plan }: WorkoutPlanCardProps) {
+export function WorkoutPlanCard({ plan, onViewDetails }: WorkoutPlanCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const navigate = useNavigate();
 
   const formattedStartDate = format(parseISO(plan.start_date), 'MMM d, yyyy');
   const formattedEndDate = format(parseISO(plan.end_date), 'MMM d, yyyy');
@@ -31,7 +29,7 @@ export function WorkoutPlanCard({ plan }: WorkoutPlanCardProps) {
   };
 
   const handleViewDetails = () => {
-    navigate(`/plans/${plan.id}`);
+    onViewDetails(plan.id);
   };
 
   return (

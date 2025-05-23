@@ -122,7 +122,7 @@ const PlanDetails = () => {
                       {format(parseISO(plan.start_date), "MMM d, yyyy")} - {format(parseISO(plan.end_date), "MMM d, yyyy")}
                     </span>
                     {plan.is_active && (
-                      <Badge variant="success" className="ml-2">Active</Badge>
+                      <Badge variant="default" className="ml-2 bg-green-500">Active</Badge>
                     )}
                   </div>
                   {plan.description && (
