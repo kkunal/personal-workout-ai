@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface GenerateWorkoutButtonProps {
   onSuccess?: (planId: string) => void;
@@ -12,12 +13,19 @@ interface GenerateWorkoutButtonProps {
 export function GenerateWorkoutButton({ onSuccess }: GenerateWorkoutButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const generateWorkoutPlan = async () => {
     setIsGenerating(true);
 
     try {
-      const { data, error } = await supabase.rpc('generate_workout_plan');
+      if (!user) {
+        throw new Error("You must be logged in to generate a workout plan");
+      }
+
+      const { data, error } = await supabase.rpc('generate_workout_plan', {
+        user_id: user.id
+      });
       
       if (error) {
         throw new Error(error.message);

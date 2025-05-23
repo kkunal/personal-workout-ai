@@ -4,8 +4,7 @@ import { WorkoutPlansList } from "@/components/workouts/WorkoutPlansList";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { GenerateWorkoutButton } from "@/components/workouts/GenerateWorkoutButton";
 
 const WorkoutPlans = () => {
   const { user, isLoading } = useAuth();
@@ -16,6 +15,11 @@ const WorkoutPlans = () => {
       navigate("/auth");
     }
   }, [user, isLoading, navigate]);
+
+  const handleWorkoutGenerated = (planId: string) => {
+    // Refresh the page or update the plans list
+    window.location.reload();
+  };
 
   if (isLoading) {
     return (
@@ -36,6 +40,9 @@ const WorkoutPlans = () => {
             <p className="text-gray-600 mt-2">
               View and manage your personalized workout plans
             </p>
+          </div>
+          <div className="mt-4 md:mt-0">
+            <GenerateWorkoutButton onSuccess={handleWorkoutGenerated} />
           </div>
         </div>
 
