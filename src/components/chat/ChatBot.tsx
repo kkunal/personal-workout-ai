@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Bot, X, Send, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ export const ChatBot = () => {
     { text: WELCOME_MESSAGE, isUser: false }
   ]);
   const [inputValue, setInputValue] = useState("");
-  const { isMobile } = useIsMobile();
+  const isMobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
