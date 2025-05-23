@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+
+import { useState } from "react";
 import { Bot, X, Send, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Sample predefined answers for common questions
@@ -31,16 +31,8 @@ export const ChatBot = () => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const isMobile = useIsMobile();
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  console.log("ChatBot rendering, isOpen:", isOpen, "isMobile:", isMobile);
-
-  useEffect(() => {
-    // Force a rerender to ensure the button is properly initialized
-    if (buttonRef.current) {
-      console.log("Button ref exists");
-    }
-  }, []);
+  console.log("ChatBot rendering, isOpen:", isOpen);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,130 +65,70 @@ export const ChatBot = () => {
     return "I'm here to help with questions about FitPlan's features, pricing, and how our workouts can help you reach your fitness goals. Could you please provide more details about what you're looking for?";
   };
 
-  const handleOpenChat = () => {
-    console.log("Opening chat, current state:", isOpen);
-    setIsOpen(true);
-  };
-
-  const handleCloseChat = () => {
-    console.log("Closing chat");
-    setIsOpen(false);
-  };
-
-  // Separate the chat button component for clarity
-  const ChatButton = () => (
-    <Button 
-      ref={buttonRef}
-      onClick={handleOpenChat}
-      className="fixed bottom-4 right-4 rounded-full h-12 w-12 p-2 shadow-lg bg-primary hover:bg-primary/90 z-50"
-      aria-label="Open chat assistant"
-    >
-      <Bot size={24} />
-    </Button>
-  );
-
-  // Render the mobile or desktop version based on screen size
   return (
-    <>
-      <ChatButton />
-      
-      {isMobile ? (
-        <Drawer open={isOpen} onOpenChange={setIsOpen}>
-          <DrawerContent className="h-[80vh]">
-            <div className="p-4 flex flex-col h-full">
-              <ChatInterface 
-                messages={messages} 
-                inputValue={inputValue} 
-                setInputValue={setInputValue} 
-                handleSubmit={handleSubmit} 
-                onClose={handleCloseChat}
-              />
-            </div>
-          </DrawerContent>
-        </Drawer>
-      ) : (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <ChatInterface 
-              messages={messages} 
-              inputValue={inputValue} 
-              setInputValue={setInputValue} 
-              handleSubmit={handleSubmit} 
-              onClose={handleCloseChat}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-    </>
-  );
-};
-
-interface ChatInterfaceProps {
-  messages: Message[];
-  inputValue: string;
-  setInputValue: (value: string) => void;
-  handleSubmit: (e: React.FormEvent) => void;
-  onClose: () => void;
-}
-
-const ChatInterface = ({ 
-  messages, 
-  inputValue, 
-  setInputValue, 
-  handleSubmit,
-  onClose
-}: ChatInterfaceProps) => {
-  return (
-    <>
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="font-semibold text-lg">FitPlan Assistant</h3>
-        <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-          <X size={18} />
-          <span className="sr-only">Close</span>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <SheetTrigger asChild>
+        <Button 
+          className="fixed bottom-4 right-4 rounded-full h-12 w-12 p-2 shadow-lg bg-primary hover:bg-primary/90 z-50"
+          size="icon"
+          aria-label="Open chat assistant"
+        >
+          <Bot size={24} />
         </Button>
-      </div>
-      
-      <div className="flex-grow overflow-y-auto mb-4 space-y-4">
-        {messages.map((message, index) => (
-          <div 
-            key={index} 
-            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-          >
-            <div className={`flex items-start gap-2 max-w-[80%] ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className="flex-shrink-0 h-8 w-8">
-                {message.isUser ? (
-                  <UserCircle className="h-8 w-8 text-blue-500" />
-                ) : (
-                  <Bot className="h-8 w-8 text-green-500" />
-                )}
-              </div>
-              <div 
-                className={`rounded-lg p-3 ${
-                  message.isUser 
-                    ? 'bg-blue-500 text-white' 
-                    : 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                {message.text}
-              </div>
-            </div>
+      </SheetTrigger>
+      <SheetContent side={isMobile ? "bottom" : "right"} className={isMobile ? "h-[80vh]" : ""}>
+        <div className="flex flex-col h-full">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-lg">FitPlan Assistant</h3>
+            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8">
+              <X size={18} />
+              <span className="sr-only">Close</span>
+            </Button>
           </div>
-        ))}
-      </div>
-      
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Ask about workouts, pricing, etc..."
-          className="flex-grow border rounded-md px-3 py-2 text-sm"
-        />
-        <Button type="submit" size="icon" disabled={!inputValue.trim()}>
-          <Send size={18} />
-          <span className="sr-only">Send</span>
-        </Button>
-      </form>
-    </>
+          
+          <div className="flex-grow overflow-y-auto mb-4 space-y-4">
+            {messages.map((message, index) => (
+              <div 
+                key={index} 
+                className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+              >
+                <div className={`flex items-start gap-2 max-w-[80%] ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div className="flex-shrink-0 h-8 w-8">
+                    {message.isUser ? (
+                      <UserCircle className="h-8 w-8 text-blue-500" />
+                    ) : (
+                      <Bot className="h-8 w-8 text-green-500" />
+                    )}
+                  </div>
+                  <div 
+                    className={`rounded-lg p-3 ${
+                      message.isUser 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {message.text}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Ask about workouts, pricing, etc..."
+              className="flex-grow border rounded-md px-3 py-2 text-sm"
+            />
+            <Button type="submit" size="icon" disabled={!inputValue.trim()}>
+              <Send size={18} />
+              <span className="sr-only">Send</span>
+            </Button>
+          </form>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
