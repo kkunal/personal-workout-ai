@@ -1,4 +1,3 @@
-
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
@@ -45,21 +44,25 @@ export function Pricing() {
   const handleCheckout = async (plan: typeof plans[0]) => {
     try {
       setLoadingPlan(plan.name);
+      console.log(`Starting checkout process for ${plan.name} plan...`);
       
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { plan },
       });
 
       if (error) {
-        throw new Error(error.message);
+        console.error("Checkout error:", error);
+        throw new Error(error.message || "Failed to create checkout session");
       }
 
-      if (data?.url) {
-        // Direct redirection to the Stripe checkout URL
-        window.location.href = data.url;
-      } else {
-        throw new Error("No checkout URL received");
+      if (!data?.url) {
+        console.error("No checkout URL received:", data);
+        throw new Error("No checkout URL received from server");
       }
+
+      console.log(`Received checkout URL: ${data.url}`);
+      // Direct redirection to the Stripe checkout URL
+      window.open(data.url, '_blank');
     } catch (error) {
       console.error("Checkout error:", error);
       toast({

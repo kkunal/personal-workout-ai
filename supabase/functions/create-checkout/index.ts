@@ -60,8 +60,8 @@ serve(async (req) => {
       }
     }
     
-    // Create the checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Create the checkout session with appropriate configuration for each plan type
+    const sessionConfig = {
       payment_method_types: ["card"],
       line_items: [
         {
@@ -70,10 +70,7 @@ serve(async (req) => {
                 ...priceData,
                 recurring: { interval: "month" },
               } 
-            : {
-                ...priceData,
-                // For annual plan (one-time payment)
-              },
+            : priceData, // For annual plan (one-time payment), no recurring property
           quantity: 1,
         },
       ],
@@ -81,7 +78,11 @@ serve(async (req) => {
       success_url: `${req.headers.get("origin")}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/#pricing`,
       customer_email: customerEmail,
-    });
+    };
+
+    console.log("Creating checkout session with config:", JSON.stringify(sessionConfig));
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+    console.log("Checkout session created:", session.id, "URL:", session.url);
 
     return new Response(
       JSON.stringify({ url: session.url }),
