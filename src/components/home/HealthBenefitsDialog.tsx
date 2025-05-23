@@ -10,7 +10,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
-import { Gallery, Info, Dumbbell, Heart, Brain } from "lucide-react";
+import { Images, Info, Dumbbell, Heart, Brain } from "lucide-react";
 
 export function HealthBenefitsDialog({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
   return (
@@ -117,7 +117,7 @@ export function HealthBenefitsDialog({ open, setOpen }: { open: boolean; setOpen
             
             <div className="flex items-start gap-3">
               <div className="mt-1 bg-blue-100 p-2 rounded-full">
-                <Gallery className="h-4 w-4 text-blue-600" />
+                <Images className="h-4 w-4 text-blue-600" />
               </div>
               <div>
                 <h4 className="font-medium">2. Get Your Custom Plan</h4>
