@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Carousel,
@@ -20,6 +20,9 @@ export function HealthBenefitsDialog({ open, setOpen }: { open: boolean; setOpen
           <DialogTitle className="text-2xl font-bold text-center mb-2">
             How Our Program Works
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Learn about the health benefits of our fitness program
+          </DialogDescription>
         </DialogHeader>
         
         <div className="py-4">
@@ -137,7 +140,7 @@ export function HealthBenefitsDialog({ open, setOpen }: { open: boolean; setOpen
           </div>
           
           <div className="flex justify-end pt-2">
-            <Button onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={() => setOpen(false)}>
               Close
             </Button>
           </div>
