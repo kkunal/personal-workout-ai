@@ -1,9 +1,8 @@
-
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Bot, X, Send, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Sample predefined answers for common questions
@@ -32,8 +31,16 @@ export const ChatBot = () => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const isMobile = useIsMobile();
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  console.log("ChatBot rendering, isOpen:", isOpen);
+  console.log("ChatBot rendering, isOpen:", isOpen, "isMobile:", isMobile);
+
+  useEffect(() => {
+    // Force a rerender to ensure the button is properly initialized
+    if (buttonRef.current) {
+      console.log("Button ref exists");
+    }
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,27 +73,34 @@ export const ChatBot = () => {
     return "I'm here to help with questions about FitPlan's features, pricing, and how our workouts can help you reach your fitness goals. Could you please provide more details about what you're looking for?";
   };
 
-  const handleOpen = () => {
-    console.log("Opening chat");
+  const handleOpenChat = () => {
+    console.log("Opening chat, current state:", isOpen);
     setIsOpen(true);
   };
 
-  const handleClose = () => {
+  const handleCloseChat = () => {
     console.log("Closing chat");
     setIsOpen(false);
   };
 
-  if (isMobile) {
-    return (
-      <>
-        <Button 
-          onClick={handleOpen}
-          className="fixed bottom-4 right-4 rounded-full h-12 w-12 p-2 shadow-lg"
-          aria-label="Open chat assistant"
-        >
-          <Bot size={24} />
-        </Button>
+  // Separate the chat button component for clarity
+  const ChatButton = () => (
+    <Button 
+      ref={buttonRef}
+      onClick={handleOpenChat}
+      className="fixed bottom-4 right-4 rounded-full h-12 w-12 p-2 shadow-lg bg-primary hover:bg-primary/90 z-50"
+      aria-label="Open chat assistant"
+    >
+      <Bot size={24} />
+    </Button>
+  );
 
+  // Render the mobile or desktop version based on screen size
+  return (
+    <>
+      <ChatButton />
+      
+      {isMobile ? (
         <Drawer open={isOpen} onOpenChange={setIsOpen}>
           <DrawerContent className="h-[80vh]">
             <div className="p-4 flex flex-col h-full">
@@ -95,36 +109,24 @@ export const ChatBot = () => {
                 inputValue={inputValue} 
                 setInputValue={setInputValue} 
                 handleSubmit={handleSubmit} 
-                onClose={handleClose}
+                onClose={handleCloseChat}
               />
             </div>
           </DrawerContent>
         </Drawer>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <Button 
-        onClick={handleOpen}
-        className="fixed bottom-4 right-4 rounded-full h-12 w-12 p-2 shadow-lg"
-        aria-label="Open chat assistant"
-      >
-        <Bot size={24} />
-      </Button>
-
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <ChatInterface 
-            messages={messages} 
-            inputValue={inputValue} 
-            setInputValue={setInputValue} 
-            handleSubmit={handleSubmit} 
-            onClose={handleClose}
-          />
-        </DialogContent>
-      </Dialog>
+      ) : (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <ChatInterface 
+              messages={messages} 
+              inputValue={inputValue} 
+              setInputValue={setInputValue} 
+              handleSubmit={handleSubmit} 
+              onClose={handleCloseChat}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 };
