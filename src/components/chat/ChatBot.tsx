@@ -33,6 +33,8 @@ export const ChatBot = () => {
   const [inputValue, setInputValue] = useState("");
   const isMobile = useIsMobile();
 
+  console.log("ChatBot rendering, isOpen:", isOpen);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
@@ -64,49 +66,66 @@ export const ChatBot = () => {
     return "I'm here to help with questions about FitPlan's features, pricing, and how our workouts can help you reach your fitness goals. Could you please provide more details about what you're looking for?";
   };
 
-  // The key issue is in the component below - we need to ensure the trigger buttons work
-  return isMobile ? (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      <DrawerTrigger asChild>
+  const handleOpen = () => {
+    console.log("Opening chat");
+    setIsOpen(true);
+  };
+
+  const handleClose = () => {
+    console.log("Closing chat");
+    setIsOpen(false);
+  };
+
+  if (isMobile) {
+    return (
+      <>
         <Button 
+          onClick={handleOpen}
           className="fixed bottom-4 right-4 rounded-full h-12 w-12 p-2 shadow-lg"
           aria-label="Open chat assistant"
         >
           <Bot size={24} />
         </Button>
-      </DrawerTrigger>
-      <DrawerContent className="h-[80vh]">
-        <div className="p-4 flex flex-col h-full">
+
+        <Drawer open={isOpen} onOpenChange={setIsOpen}>
+          <DrawerContent className="h-[80vh]">
+            <div className="p-4 flex flex-col h-full">
+              <ChatInterface 
+                messages={messages} 
+                inputValue={inputValue} 
+                setInputValue={setInputValue} 
+                handleSubmit={handleSubmit} 
+                onClose={handleClose}
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Button 
+        onClick={handleOpen}
+        className="fixed bottom-4 right-4 rounded-full h-12 w-12 p-2 shadow-lg"
+        aria-label="Open chat assistant"
+      >
+        <Bot size={24} />
+      </Button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="sm:max-w-[425px]">
           <ChatInterface 
             messages={messages} 
             inputValue={inputValue} 
             setInputValue={setInputValue} 
             handleSubmit={handleSubmit} 
-            onClose={() => setIsOpen(false)} 
+            onClose={handleClose}
           />
-        </div>
-      </DrawerContent>
-    </Drawer>
-  ) : (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          className="fixed bottom-4 right-4 rounded-full h-12 w-12 p-2 shadow-lg"
-          aria-label="Open chat assistant"
-        >
-          <Bot size={24} />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <ChatInterface 
-          messages={messages} 
-          inputValue={inputValue} 
-          setInputValue={setInputValue} 
-          handleSubmit={handleSubmit} 
-          onClose={() => setIsOpen(false)} 
-        />
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
