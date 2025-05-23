@@ -1,14 +1,48 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { HealthBenefitsDialog } from "./HealthBenefitsDialog";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 export function Hero() {
   const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const images = [
+    {
+      url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&h=350&q=80",
+      alt: "Person exercising outdoors"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=350&q=80",
+      alt: "Woman using laptop"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=350&q=80",
+      alt: "Home workout"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1472396961693-142e6e269027?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=350&q=80",
+      alt: "Nature view for mental wellness"
+    }
+  ];
+
+  // Auto-rotate carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % images.length);
+    }, 5000); // Change image every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [images.length]);
 
   const handleLearnMoreClick = () => {
     setDialogOpen(true);
@@ -50,16 +84,26 @@ export function Hero() {
             </div>
           </div>
           <div className="md:w-1/2 flex justify-center">
-            <div className="relative">
+            <div className="relative w-full max-w-lg">
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-lg blur-lg opacity-75"></div>
               <div className="relative bg-white p-6 rounded-lg shadow-xl">
-                <img
-                  src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&h=350&q=80"
-                  alt="Fitness coaching"
-                  className="rounded-lg w-full h-auto object-cover"
-                  width={500}
-                  height={350}
-                />
+                <Carousel className="w-full" orientation="horizontal" opts={{ loop: true, startIndex: currentSlide }}>
+                  <CarouselContent>
+                    {images.map((image, index) => (
+                      <CarouselItem key={index} className="flex items-center justify-center">
+                        <div className="relative w-full overflow-hidden rounded-md aspect-[5/3.5]">
+                          <img
+                            src={image.url}
+                            alt={image.alt}
+                            className="w-full h-full object-cover transition-opacity duration-300"
+                            width={500}
+                            height={350}
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
               </div>
             </div>
           </div>
