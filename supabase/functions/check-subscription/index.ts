@@ -45,7 +45,7 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Fetch existing subscription status
-    const { data: subscriptionData, error: queryError } = await supabaseClient
+    const { data: subscriptionStatus, error: queryError } = await supabaseClient
       .from("user_subscription_status")
       .select("*")
       .eq("user_id", user.id)
@@ -57,7 +57,7 @@ serve(async (req) => {
     }
 
     // If no record exists, create default entry using service role to bypass RLS
-    if (!subscriptionData) {
+    if (!subscriptionStatus) {
       logStep("No subscription record found, creating default");
       const defaultTrialEnd = new Date();
       defaultTrialEnd.setDate(defaultTrialEnd.getDate() + 14); // 14 days from now
@@ -71,7 +71,7 @@ serve(async (req) => {
           is_trial_expired: false,
           has_subscription: false
         })
-        .select()
+        .select("*")
         .single();
         
       if (insertError) {
@@ -87,27 +87,22 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No Stripe customer found, returning status based on db data");
       
-      // Update is_trial_expired via a timestamp update (to trigger the DB trigger)
-      const { data: updatedData, error: updateError } = await supabaseClient
+      // Return current status from database if no stripe customer exists
+      const { data: currentStatus, error: statusError } = await supabaseClient
         .from("user_subscription_status")
-        .update({ 
-          updated_at: new Date().toISOString(),
-          has_subscription: false,
-          subscription_type: null 
-        })
+        .select("*")
         .eq("user_id", user.id)
-        .select()
-        .single();
+        .maybeSingle();
         
-      if (updateError) {
-        logStep("Error updating status", { error: updateError.message });
-        throw new Error(`Error updating status: ${updateError.message}`);
+      if (statusError) {
+        logStep("Error getting status", { error: statusError.message });
+        throw new Error(`Error getting status: ${statusError.message}`);
       }
       
       return new Response(JSON.stringify({ 
         has_subscription: false,
-        is_trial_expired: updatedData.is_trial_expired || false,
-        trial_end_date: updatedData.trial_end_date,
+        is_trial_expired: currentStatus?.is_trial_expired || false,
+        trial_end_date: currentStatus?.trial_end_date,
         subscription_type: null
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -151,32 +146,40 @@ serve(async (req) => {
       });
 
       // Update the subscription status in database
-      const { data: updatedData, error: updateError } = await supabaseClient
+      const { error: updateError } = await supabaseClient
         .from("user_subscription_status")
         .update({
           has_subscription: true,
           subscription_type: subscriptionType,
           updated_at: new Date().toISOString()
         })
-        .eq("user_id", user.id)
-        .select()
-        .single();
+        .eq("user_id", user.id);
         
       if (updateError) {
         logStep("Failed to update subscription status", { error: updateError.message });
         throw new Error(`Failed to update subscription status: ${updateError.message}`);
       }
       
-      logStep("Updated subscription status", { 
-        recordId: updatedData.id,
-        hasSubscription: true,
-        subscriptionType
-      });
+      // Retrieve updated record
+      const { data: updatedData, error: fetchError } = await supabaseClient
+        .from("user_subscription_status")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+        
+      if (fetchError) {
+        logStep("Failed to fetch updated status", { error: fetchError.message });
+      } else {
+        logStep("Updated subscription status", { 
+          hasSubscription: true,
+          subscriptionType
+        });
+      }
       
       return new Response(JSON.stringify({
         has_subscription: true,
-        is_trial_expired: updatedData.is_trial_expired,
-        trial_end_date: updatedData.trial_end_date,
+        is_trial_expired: updatedData?.is_trial_expired || false,
+        trial_end_date: updatedData?.trial_end_date,
         subscription_type: subscriptionType
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -185,29 +188,38 @@ serve(async (req) => {
     } else {
       logStep("No active subscription found");
       
-      // No active subscription, just update the timestamp to trigger trial expiry check
-      const { data: updatedData, error: updateError } = await supabaseClient
+      // No active subscription, update the record
+      const { error: updateError } = await supabaseClient
         .from("user_subscription_status")
         .update({ 
           has_subscription: false,
           subscription_type: null,
           updated_at: new Date().toISOString() 
         })
-        .eq("user_id", user.id)
-        .select()
-        .single();
+        .eq("user_id", user.id);
         
       if (updateError) {
         logStep("Failed to update status", { error: updateError.message });
         throw new Error(`Failed to update status: ${updateError.message}`);
       }
       
-      logStep("Updated no-subscription status", { recordId: updatedData.id });
+      // Retrieve updated record
+      const { data: updatedData, error: fetchError } = await supabaseClient
+        .from("user_subscription_status")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+        
+      if (fetchError) {
+        logStep("Failed to fetch updated status", { error: fetchError.message });
+      } else {
+        logStep("Updated no-subscription status", { record: updatedData });
+      }
       
       return new Response(JSON.stringify({
         has_subscription: false,
-        is_trial_expired: updatedData.is_trial_expired,
-        trial_end_date: updatedData.trial_end_date,
+        is_trial_expired: updatedData?.is_trial_expired || false,
+        trial_end_date: updatedData?.trial_end_date,
         subscription_type: null
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

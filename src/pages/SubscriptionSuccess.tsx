@@ -14,6 +14,7 @@ const SubscriptionSuccess = () => {
   const { refresh, isSubscribed } = useSubscription();
   const [isUpdating, setIsUpdating] = useState(true);
   const [refreshAttempts, setRefreshAttempts] = useState(0);
+  const maxRefreshAttempts = 5;
 
   useEffect(() => {
     if (!sessionId) {
@@ -27,16 +28,17 @@ const SubscriptionSuccess = () => {
         setIsUpdating(true);
         console.log("Updating subscription status after successful payment...");
         
-        // Multiple refresh attempts to ensure status is updated
+        // First refresh attempt
         await refresh();
+        console.log("First refresh attempt complete, subscription status:", { isSubscribed });
         
         // Set a short timeout before checking status again
         setTimeout(async () => {
           console.log("Second attempt at refreshing subscription status...");
           await refresh();
           
-          if (!isSubscribed && refreshAttempts < 3) {
-            console.log(`Subscription status not updated yet. Attempt ${refreshAttempts + 1} of 3`);
+          if (!isSubscribed && refreshAttempts < maxRefreshAttempts) {
+            console.log(`Subscription status not updated yet. Attempt ${refreshAttempts + 1} of ${maxRefreshAttempts}`);
             setRefreshAttempts(prev => prev + 1);
           } else {
             console.log("Subscription status updated:", { isSubscribed });
@@ -54,6 +56,12 @@ const SubscriptionSuccess = () => {
       } catch (error) {
         console.error("Error updating subscription status:", error);
         setIsUpdating(false);
+        
+        toast({
+          title: "Warning",
+          description: "There was an issue verifying your subscription. Please check the subscription page in a moment.",
+          variant: "destructive",
+        });
       }
     };
     
@@ -62,15 +70,35 @@ const SubscriptionSuccess = () => {
 
   // Make additional attempts if needed
   useEffect(() => {
-    if (refreshAttempts > 0 && refreshAttempts < 3 && !isSubscribed) {
-      const timer = setTimeout(() => {
-        console.log(`Making additional attempt (${refreshAttempts + 1} of 3) to refresh subscription status...`);
-        refresh();
+    if (refreshAttempts > 0 && refreshAttempts < maxRefreshAttempts && !isSubscribed) {
+      const timer = setTimeout(async () => {
+        console.log(`Making additional attempt (${refreshAttempts + 1} of ${maxRefreshAttempts}) to refresh subscription status...`);
+        try {
+          await refresh();
+          if (isSubscribed) {
+            toast({
+              title: "Subscription activated",
+              description: "Thank you for subscribing! You now have access to all premium features.",
+              variant: "default",
+            });
+            setIsUpdating(false);
+          }
+        } catch (error) {
+          console.error("Error during refresh attempt:", error);
+        }
       }, 3000);
       
       return () => clearTimeout(timer);
+    } else if (refreshAttempts >= maxRefreshAttempts && !isSubscribed) {
+      console.log("Max refresh attempts reached. Will stop trying.");
+      setIsUpdating(false);
+      toast({
+        title: "Subscription status check",
+        description: "Your payment was successful, but we're still updating your subscription status. Please check again in a moment.",
+        variant: "default",
+      });
     }
-  }, [refreshAttempts, isSubscribed, refresh]);
+  }, [refreshAttempts, isSubscribed, refresh, maxRefreshAttempts]);
 
   return (
     <Container className="py-20">

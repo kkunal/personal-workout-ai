@@ -152,13 +152,13 @@ export function useSubscription(): SubscriptionStatus {
       fetchSubscriptionStatus();
     }
     
-    // Also set up periodic refresh every 15 seconds when on subscription-related pages
+    // Also set up periodic refresh every 10 seconds when on subscription-related pages
     let intervalId: number | undefined;
     if (currentPath === '/subscription' || currentPath === '/success') {
       intervalId = window.setInterval(() => {
         console.log("Periodic refresh of subscription status");
         fetchSubscriptionStatus();
-      }, 15000);
+      }, 10000);
     }
     
     return () => {
