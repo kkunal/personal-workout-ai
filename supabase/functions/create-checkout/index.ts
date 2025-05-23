@@ -72,7 +72,7 @@ serve(async (req) => {
               } 
             : {
                 ...priceData,
-                // For annual plan
+                // For annual plan (one-time payment)
               },
           quantity: 1,
         },

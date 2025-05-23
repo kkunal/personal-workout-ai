@@ -55,6 +55,7 @@ export function Pricing() {
       }
 
       if (data?.url) {
+        // Direct redirection to the Stripe checkout URL
         window.location.href = data.url;
       } else {
         throw new Error("No checkout URL received");
