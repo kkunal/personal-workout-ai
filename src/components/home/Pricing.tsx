@@ -1,9 +1,12 @@
 
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 const plans = [
   {
@@ -37,6 +40,36 @@ const plans = [
 
 export function Pricing() {
   const { user } = useAuth();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const handleCheckout = async (plan: typeof plans[0]) => {
+    try {
+      setLoadingPlan(plan.name);
+      
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { plan },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL received");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast({
+        title: "Checkout Error",
+        description: error instanceof Error ? error.message : "Failed to start checkout process",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   return (
     <section id="pricing" className="py-16 bg-gray-50">
@@ -73,15 +106,34 @@ export function Pricing() {
                 <p className="mt-2 text-gray-600">{plan.description}</p>
 
                 <div className="mt-6">
-                  <Link to={user ? "/subscription" : "/auth"}>
-                    <Button
+                  {user ? (
+                    <Button 
                       className={`w-full ${
                         plan.popular ? "bg-blue-600 hover:bg-blue-700" : ""
                       }`}
+                      onClick={() => handleCheckout(plan)}
+                      disabled={loadingPlan === plan.name}
                     >
-                      {user ? "Select Plan" : "Start Free Trial"}
+                      {loadingPlan === plan.name ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Select Plan"
+                      )}
                     </Button>
-                  </Link>
+                  ) : (
+                    <Link to="/auth">
+                      <Button
+                        className={`w-full ${
+                          plan.popular ? "bg-blue-600 hover:bg-blue-700" : ""
+                        }`}
+                      >
+                        Start Free Trial
+                      </Button>
+                    </Link>
+                  )}
                 </div>
 
                 <ul className="mt-6 space-y-3">
