@@ -38,7 +38,7 @@ export function Navbar() {
                   Dashboard
                 </Link>
                 <Link to="/plans" className="text-gray-700 hover:text-blue-600">
-                  My Plans
+                  My Workouts
                 </Link>
                 <Link to="/support" className="text-gray-700 hover:text-blue-600">
                   Support
@@ -113,7 +113,7 @@ export function Navbar() {
                     className="text-gray-700 hover:text-blue-600"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    My Plans
+                    My Workouts
                   </Link>
                   <Link
                     to="/support"
