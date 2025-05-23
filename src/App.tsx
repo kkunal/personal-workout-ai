@@ -17,6 +17,7 @@ import WorkoutPlans from "./pages/WorkoutPlans";
 import PlanDetails from "./pages/PlanDetails";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import SubscriptionPage from "./pages/SubscriptionPage";
+import PricingPlans from "./pages/PricingPlans";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/plans/:planId" element={<PlanDetails />} />
               <Route path="/success" element={<SubscriptionSuccess />} />
               <Route path="/subscription" element={<SubscriptionPage />} />
+              <Route path="/pricing" element={<PricingPlans />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

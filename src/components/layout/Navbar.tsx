@@ -32,6 +32,9 @@ export function Navbar() {
             <Link to="/" className="text-gray-700 hover:text-blue-600">
               Home
             </Link>
+            <Link to="/pricing" className="text-gray-700 hover:text-blue-600">
+              Pricing
+            </Link>
             {user ? (
               <>
                 <Link to="/dashboard" className="text-gray-700 hover:text-blue-600">
@@ -94,6 +97,13 @@ export function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Home
+              </Link>
+              <Link
+                to="/pricing"
+                className="text-gray-700 hover:text-blue-600"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pricing
               </Link>
               {user ? (
                 <>

@@ -133,18 +133,18 @@ const Dashboard = () => {
               </Card>
             </Link>
 
-            <Link to="/support">
+            <Link to="/pricing">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    Get Support
+                    View Subscription Plans
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600">
-                    Have questions or need help? Chat with our support team
-                    to get personalized assistance with your fitness journey.
+                    Explore our subscription options and choose a plan that fits your needs.
+                    Get access to premium features to enhance your fitness journey.
                   </p>
                 </CardContent>
               </Card>

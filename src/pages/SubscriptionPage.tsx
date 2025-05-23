@@ -107,7 +107,7 @@ const SubscriptionPage = () => {
             ) : (
               <>
                 <Button asChild>
-                  <Link to="/#pricing">View Plans</Link>
+                  <Link to="/pricing">View Plans</Link>
                 </Button>
                 <Button variant="outline" asChild>
                   <Link to="/dashboard">Continue to Dashboard</Link>

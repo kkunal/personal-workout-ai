@@ -1,11 +1,8 @@
+
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2 } from "lucide-react";
+import { Check } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
 
 const plans = [
   {
@@ -38,43 +35,6 @@ const plans = [
 ];
 
 export function Pricing() {
-  const { user } = useAuth();
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-
-  const handleCheckout = async (plan: typeof plans[0]) => {
-    try {
-      setLoadingPlan(plan.name);
-      console.log(`Starting checkout process for ${plan.name} plan...`);
-      
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { plan },
-      });
-
-      if (error) {
-        console.error("Checkout error:", error);
-        throw new Error(error.message || "Failed to create checkout session");
-      }
-
-      if (!data?.url) {
-        console.error("No checkout URL received:", data);
-        throw new Error("No checkout URL received from server");
-      }
-
-      console.log(`Received checkout URL: ${data.url}`);
-      // Direct redirection to the Stripe checkout URL
-      window.open(data.url, '_blank');
-    } catch (error) {
-      console.error("Checkout error:", error);
-      toast({
-        title: "Checkout Error",
-        description: error instanceof Error ? error.message : "Failed to start checkout process",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingPlan(null);
-    }
-  };
-
   return (
     <section id="pricing" className="py-16 bg-gray-50">
       <Container>
@@ -110,34 +70,14 @@ export function Pricing() {
                 <p className="mt-2 text-gray-600">{plan.description}</p>
 
                 <div className="mt-6">
-                  {user ? (
-                    <Button 
-                      className={`w-full ${
-                        plan.popular ? "bg-blue-600 hover:bg-blue-700" : ""
-                      }`}
-                      onClick={() => handleCheckout(plan)}
-                      disabled={loadingPlan === plan.name}
-                    >
-                      {loadingPlan === plan.name ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        "Select Plan"
-                      )}
-                    </Button>
-                  ) : (
-                    <Link to="/auth">
-                      <Button
-                        className={`w-full ${
-                          plan.popular ? "bg-blue-600 hover:bg-blue-700" : ""
-                        }`}
-                      >
-                        Start Free Trial
-                      </Button>
-                    </Link>
-                  )}
+                  <Button
+                    className={`w-full ${
+                      plan.popular ? "bg-blue-600 hover:bg-blue-700" : ""
+                    }`}
+                    asChild
+                  >
+                    <Link to="/pricing">View Details</Link>
+                  </Button>
                 </div>
 
                 <ul className="mt-6 space-y-3">
@@ -151,6 +91,12 @@ export function Pricing() {
               </div>
             </div>
           ))}
+        </div>
+        
+        <div className="text-center mt-10">
+          <Button size="lg" variant="default" asChild>
+            <Link to="/pricing">See All Plans</Link>
+          </Button>
         </div>
       </Container>
     </section>

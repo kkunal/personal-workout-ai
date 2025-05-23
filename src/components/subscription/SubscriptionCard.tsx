@@ -60,7 +60,7 @@ export function SubscriptionCard() {
               <div className="text-sm text-red-700">Subscribe to continue</div>
             </div>
             <Button variant="default" size="sm">
-              <Link to="/#pricing">View Plans</Link>
+              <Link to="/pricing">View Plans</Link>
             </Button>
           </div>
         </CardContent>
