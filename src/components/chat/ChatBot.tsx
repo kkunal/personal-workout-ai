@@ -64,8 +64,8 @@ export const ChatBot = () => {
     return "I'm here to help with questions about FitPlan's features, pricing, and how our workouts can help you reach your fitness goals. Could you please provide more details about what you're looking for?";
   };
 
-  // Use Drawer for mobile and Dialog for desktop
-  const ChatComponent = isMobile ? (
+  // The key issue is in the component below - we need to ensure the trigger buttons work
+  return isMobile ? (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
         <Button 
@@ -108,8 +108,6 @@ export const ChatBot = () => {
       </DialogContent>
     </Dialog>
   );
-
-  return ChatComponent;
 };
 
 interface ChatInterfaceProps {
