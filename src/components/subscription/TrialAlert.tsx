@@ -21,7 +21,7 @@ export function TrialAlert() {
         <AlertDescription className="flex flex-col gap-2">
           <p>Your free trial has ended. Subscribe now to continue using all features.</p>
           <Button asChild size="sm" className="w-fit">
-            <Link to="/#pricing">Subscribe Now</Link>
+            <Link to="/#pricing">View Plans</Link>
           </Button>
         </AlertDescription>
       </Alert>
